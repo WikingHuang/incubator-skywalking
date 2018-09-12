@@ -16,7 +16,7 @@
  *
  */
 
-package org.apache.skywalking.apm.plugin.dubbo;
+package org.apache.skywalking.apm.plugin.configurable;
 
 import org.apache.skywalking.apm.agent.core.boot.OverrideImplementor;
 import org.apache.skywalking.apm.agent.core.context.ContextManagerExtendService;

@@ -13,10 +13,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package org.apache.skywalking.apm.plugin.configurable;
+package org.apache.skywalking.apm.plugin.configurable.define;
 
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -24,37 +23,52 @@ import org.apache.skywalking.apm.agent.core.plugin.interceptor.ConstructorInterc
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.InstanceMethodsInterceptPoint;
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.ClassInstanceMethodsEnhancePluginDefine;
 import org.apache.skywalking.apm.agent.core.plugin.match.ClassMatch;
-import org.apache.skywalking.apm.agent.core.plugin.match.NameMatch;
+import org.apache.skywalking.apm.plugin.configurable.util.HierarchyAndNameMatch;
 
-import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
-public class DubboInstrumentation extends ClassInstanceMethodsEnhancePluginDefine {
+/**
+ * Created by weijie.huang on 2018/9/12
+ */
+public class RunnableInstrumentation extends ClassInstanceMethodsEnhancePluginDefine {
 
-    private static final String ENHANCE_CLASS = "com.alibaba.dubbo.monitor.support.MonitorFilter";
-    private static final String INTERCEPT_CLASS = "org.apache.skywalking.apm.plugin.dubbo.DubboInterceptor";
-
-    @Override
-    protected ClassMatch enhanceClass() {
-        return NameMatch.byName(ENHANCE_CLASS);
-    }
+    private static final String[] PARENT_CLASS = {"java.lang.Runnable"};
+    private static final String[] CLASS_NAME_CONTAINS = {"slick", "s.com.eoi", "scala.concurrent"};
+    private static final String INIT_METHOD_INTERCEPTOR = "org.apache.skywalking.apm.plugin.configurable.CallableOrRunnableConstructInterceptor";
+    private static final String CALL_METHOD_INTERCEPTOR = "org.apache.skywalking.apm.plugin.configurable.CallableOrRunnableInvokeInterceptor";
+    private static final String CALL_METHOD_NAME = "call";
+    private static final String RUN_METHOD_NAME = "run";
 
     @Override
     protected ConstructorInterceptPoint[] getConstructorsInterceptPoints() {
-        return null;
+        return new ConstructorInterceptPoint[]{
+            new ConstructorInterceptPoint() {
+                @Override
+                public ElementMatcher<MethodDescription> getConstructorMatcher() {
+                    return any();
+                }
+
+                @Override
+                public String getConstructorInterceptor() {
+                    return INIT_METHOD_INTERCEPTOR;
+                }
+            }
+        };
     }
 
     @Override
     protected InstanceMethodsInterceptPoint[] getInstanceMethodsInterceptPoints() {
-        return new InstanceMethodsInterceptPoint[] {
+        return new InstanceMethodsInterceptPoint[]{
             new InstanceMethodsInterceptPoint() {
                 @Override
                 public ElementMatcher<MethodDescription> getMethodsMatcher() {
-                    return named("invoke");
+                    return (named(CALL_METHOD_NAME).and(takesArguments(0)))
+                            .or(named(RUN_METHOD_NAME).and(takesArguments(0)));
                 }
 
                 @Override
                 public String getMethodsInterceptor() {
-                    return INTERCEPT_CLASS;
+                    return CALL_METHOD_INTERCEPTOR;
                 }
 
                 @Override
@@ -64,4 +78,10 @@ public class DubboInstrumentation extends ClassInstanceMethodsEnhancePluginDefin
             }
         };
     }
+
+    @Override
+    protected ClassMatch enhanceClass() {
+        return HierarchyAndNameMatch.match(PARENT_CLASS, CLASS_NAME_CONTAINS);
+    }
+
 }

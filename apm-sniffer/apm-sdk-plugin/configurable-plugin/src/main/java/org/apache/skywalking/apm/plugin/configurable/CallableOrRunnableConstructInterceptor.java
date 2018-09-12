@@ -13,30 +13,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
-
 package org.apache.skywalking.apm.plugin.configurable;
 
-import org.apache.skywalking.apm.agent.core.boot.BootService;
+import org.apache.skywalking.apm.agent.core.context.ContextManager;
+import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.EnhancedInstance;
+import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.InstanceConstructorInterceptor;
 
 /**
- * @author wusheng
+ * Created by weijie.huang on 2018/9/12
  */
-public class PluginBootService implements BootService {
-    @Override public void prepare() throws Throwable {
-
+public class CallableOrRunnableConstructInterceptor implements InstanceConstructorInterceptor {
+    @Override
+    public void onConstruct(EnhancedInstance objInst, Object[] allArguments) {
+        if (ContextManager.isActive()) {
+            objInst.setSkyWalkingDynamicField(ContextManager.capture());
+        }
     }
 
-    @Override public void boot() throws Throwable {
-
-    }
-
-    @Override public void onComplete() throws Throwable {
-
-    }
-
-    @Override public void shutdown() throws Throwable {
-
-    }
 }

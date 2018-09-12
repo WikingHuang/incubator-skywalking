@@ -16,5 +16,5 @@
 #
 #
 
-org.apache.skywalking.apm.plugin.dubbo.PluginBootService
-org.apache.skywalking.apm.plugin.dubbo.ContextManagerExtendOverrideService
+org.apache.skywalking.apm.plugin.configurable.PluginBootService
+org.apache.skywalking.apm.plugin.configurable.ContextManagerExtendOverrideService

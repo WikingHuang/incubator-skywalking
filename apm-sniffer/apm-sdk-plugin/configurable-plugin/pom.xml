@@ -19,26 +19,18 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>apm</artifactId>
+        <artifactId>apm-sdk-plugin</artifactId>
         <groupId>org.apache.skywalking</groupId>
         <version>5.0.0-RC-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>apm-sniffer</artifactId>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>apm-agent</module>
-        <module>apm-agent-core</module>
-        <module>apm-sdk-plugin</module>
-        <!--<module>apm-toolkit-activation</module>-->
-        <module>apm-test-tools</module>
-        <!--<module>optional-plugins</module>-->
-    </modules>
+    <artifactId>apm-configurable-plugin</artifactId>
+    <name>configurable-plugin</name>
+    <packaging>jar</packaging>
 
     <properties>
-        <compiler.version>1.6</compiler.version>
-        <shade.package>org.apache.skywalking.apm.dependencies</shade.package>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <activemq-client.version>5.14.5</activemq-client.version>
     </properties>
 </project>

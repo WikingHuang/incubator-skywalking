@@ -17,7 +17,7 @@
  */
 
 
-package org.apache.skywalking.apm.plugin.dubbo;
+package org.apache.skywalking.apm.plugin.configurable;
 
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.rpc.Invocation;
