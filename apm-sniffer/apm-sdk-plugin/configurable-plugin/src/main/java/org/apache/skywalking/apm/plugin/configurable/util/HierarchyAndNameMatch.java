@@ -24,9 +24,9 @@ public class HierarchyAndNameMatch implements IndirectMatch {
         if (parentTypes == null || parentTypes.length == 0) {
             throw new IllegalArgumentException("parentTypes is null");
         }
-        if ((classNameContains == null) || (classNameContains.length == 0)) {
-            throw new IllegalArgumentException("classNameContains is null, you can use HierarchyMatch");
-        }
+//        if ((classNameContains == null) || (classNameContains.length == 0)) {
+//            throw new IllegalArgumentException("classNameContains is null, you can use HierarchyMatch");
+//        }
         this.parentTypes = parentTypes;
         this.classNameContains = classNameContains;
     }
@@ -42,14 +42,22 @@ public class HierarchyAndNameMatch implements IndirectMatch {
                 junctionHierarchyMatch = junctionHierarchyMatch.and(buildSuperClassMatcher(superTypeName));
             }
         }
-        for (String name : this.classNameContains) {
-            if (junctionNameMatch == null) {
-                junctionNameMatch = ElementMatchers.nameContains(name);
-            } else {
-                junctionNameMatch = junctionNameMatch.or(ElementMatchers.nameContains(name));
+        if (classNameContains != null && classNameContains.length > 0) {
+            for (String name : this.classNameContains) {
+                if (junctionNameMatch == null) {
+                    junctionNameMatch = ElementMatchers.nameContains(name);
+                } else {
+                    junctionNameMatch = junctionNameMatch.or(ElementMatchers.nameContains(name));
+                }
             }
         }
-        return junctionHierarchyMatch.and(junctionNameMatch).and(ElementMatchers.not(ElementMatchers.isInterface()));
+
+        if (junctionNameMatch != null) {
+            return junctionHierarchyMatch.and(junctionNameMatch).and(ElementMatchers.not(ElementMatchers.isInterface()));
+        } else {
+            return junctionHierarchyMatch.and(ElementMatchers.not(ElementMatchers.isInterface()));
+
+        }
     }
 
     private ElementMatcher.Junction buildSuperClassMatcher(String superTypeName) {

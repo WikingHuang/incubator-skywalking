@@ -37,10 +37,25 @@ public class StandardInstanceInterceptor implements InstanceMethodsAroundInterce
 
     @Override
     public void beforeMethod(EnhancedInstance objInst, Method method, Object[] allArguments, Class<?>[] argumentsTypes, MethodInterceptResult result) {
-        String field1 = "reqContent.requestId";
-        String field1Value = getInstanceValue(objInst, field1);
+//        String field1 = "reqContent.requestId";
+//        String field1Value = getInstanceValue(objInst, field1);
+//        span.tag(field1, field1Value);
+        AbstractSpan span;
+        if (objInst.getClass().getSimpleName().equals("RequestContextImpl")
+                && method.getName().equals("complete")) {
+            String strMethod = ReflectUtils.reflect(objInst).field("request").field("method").field("value").toString();
+            String strUri = ReflectUtils.reflect(objInst).field("request").field("uri").toString();
+            String strHeaders = ReflectUtils.reflect(objInst).field("request").field("headers").toString();
+            String strEntity = ReflectUtils.reflect(objInst).field("request").field("entity").toString();
 
-        AbstractSpan span = ContextManager.createLocalSpan(objInst.getClass().getSimpleName() + "." + method.getName());
+            span = ContextManager.createLocalSpan(strMethod + " " + strUri);
+            span.tag("method", strMethod);
+            span.tag("uri", strUri);
+            span.tag("headers", strHeaders);
+            span.tag("entity", strEntity);
+        } else {
+            span = ContextManager.createLocalSpan(objInst.getClass().getSimpleName() + "/" + method.getName());
+        }
         Object contextSnapshot = objInst.getSkyWalkingDynamicField();
         if (contextSnapshot != null) {
             ContextManager.continued((ContextSnapshot) contextSnapshot);
@@ -48,14 +63,18 @@ public class StandardInstanceInterceptor implements InstanceMethodsAroundInterce
         String app = System.getProperty("skywalking.agent.application_code");
         span.setComponent(ComponentsDefine.DUBBO);
 
+        span.tag("class", objInst.getClass().getName());
         span.tag("operation", method.getName());
-        span.tag("class", objInst.getClass().getSimpleName());
-        span.tag(field1, field1Value);
         span.tag("app", app);
     }
 
     public Object afterMethod(EnhancedInstance objInst, Method method, Object[] allArguments, Class<?>[] argumentsTypes, Object ret)
             throws Throwable {
+//        if (objInst.getClass().getSimpleName().equals("RequestContextImpl")
+//                && method.getName().equals("complete")) {
+//
+//            ContextManager.activeSpan().tag("ret", ret.toString());
+//        }
         ContextManager.stopSpan();
         return ret;
     }
@@ -77,7 +96,7 @@ public class StandardInstanceInterceptor implements InstanceMethodsAroundInterce
             for (String fieldName : fieldArray) {
                 temp = temp.field(fieldName);
             }
-            return (String) temp.get();
+            return temp.get().toString();
         } catch (Exception ex) {
             return ex.getMessage();
         }

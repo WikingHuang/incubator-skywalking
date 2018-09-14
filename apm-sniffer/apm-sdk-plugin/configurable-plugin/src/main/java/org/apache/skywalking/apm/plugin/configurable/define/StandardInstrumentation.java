@@ -27,9 +27,14 @@ import org.apache.skywalking.apm.agent.core.plugin.interceptor.StaticMethodsInte
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.ClassInstanceMethodsEnhancePluginDefine;
 import org.apache.skywalking.apm.agent.core.plugin.match.ClassMatch;
 import org.apache.skywalking.apm.agent.core.plugin.match.HierarchyMatch;
+import org.apache.skywalking.apm.plugin.configurable.util.MixMatch;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static net.bytebuddy.matcher.ElementMatchers.isDeclaredBy;
+import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.not;
 
 /**
  * Created by weijie.huang on 2018/9/12
@@ -37,8 +42,10 @@ import java.util.List;
 public class StandardInstrumentation extends ClassInstanceMethodsEnhancePluginDefine {
 
     private static final String ENHANCE_CLASS = "java.lang.Runnable";
-    private static final String ENHANCE_CLASS2 = "s.com.eoi.common.UserHelp$";
-    private static final String[] ENHANCE_CLASS3 = {"s.com.eoi.common.ServiceCommon"};
+    //    private static final String ENHANCE_CLASS2 = "s.com.eoi.common.UserHelp$";
+    private static final String[] ENHANCE_CLASS2 = {"akka.http.scaladsl.server.directives.BasicDirectives"};
+    private static final String[] ENHANCE_CLASS3 = {"akka.http.scaladsl.server.RequestContext"};
+    private static final String[] ENHANCE_CLASS4 = {"s.com.eoi.common.ServiceCommon"};
     private static final String INTERCEPT_CLASS = "org.apache.skywalking.apm.plugin.configurable.StandardInstanceInterceptor";
     private static final String STATIC_INTERCEPT_CLASS = "org.apache.skywalking.apm.plugin.configurable.StandardStaticInterceptor";
     private static final List<String> METHOD_LIST = Arrays.asList(new String[]{"login", "verifyLogin", "setSession"});
@@ -47,8 +54,13 @@ public class StandardInstrumentation extends ClassInstanceMethodsEnhancePluginDe
 
     @Override
     protected ClassMatch enhanceClass() {
-        return HierarchyMatch.byHierarchyMatch(ENHANCE_CLASS3);
+        return MixMatch.getMatch(HierarchyMatch.byHierarchyMatch(ENHANCE_CLASS2))
+                .orMatch(HierarchyMatch.byHierarchyMatch(ENHANCE_CLASS3))
+                .orMatch(HierarchyMatch.byHierarchyMatch(ENHANCE_CLASS4));
     }
+//    protected ClassMatch enhanceClass() {
+//        return NameMatch.byName("akka.http.scaladsl.server.Route$");
+//    }
 
     @Override
     protected ConstructorInterceptPoint[] getConstructorsInterceptPoints() {
@@ -61,11 +73,17 @@ public class StandardInstrumentation extends ClassInstanceMethodsEnhancePluginDe
             new InstanceMethodsInterceptPoint() {
                 @Override
                 public ElementMatcher<MethodDescription> getMethodsMatcher() {
-                    return ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class))
-                            .and(ElementMatchers.not(ElementMatchers.isConstructor()))
-                            .and(ElementMatchers.not(ElementMatchers.named(INTERCEPT_GET_SKYWALKING_DYNAMIC_FIELD_METHOD)))
-                            .and(ElementMatchers.not(ElementMatchers.named(INTERCEPT_SET_SKYWALKING_DYNAMIC_FEILD_METHOD)))
-                            .and(ElementMatchers.not(ElementMatchers.named("driver")));
+                    HierarchyMatch match = (HierarchyMatch) HierarchyMatch.byHierarchyMatch(ENHANCE_CLASS3);
+                    return not(isDeclaredBy(Object.class))
+                            .and(not(ElementMatchers.isConstructor()))
+                            .and(not(named(INTERCEPT_GET_SKYWALKING_DYNAMIC_FIELD_METHOD)))
+                            .and(not(named(INTERCEPT_SET_SKYWALKING_DYNAMIC_FEILD_METHOD)))
+                            .and(not(named("driver")))
+                            .and(not(named("ec")))
+                            .and(not(named("db")))
+                            .and(not(isDeclaredBy(match.buildJunction())))
+                            .or(isDeclaredBy(match.buildJunction())
+                                    .and(named("complete")));
                 }
 
                 @Override
@@ -86,16 +104,23 @@ public class StandardInstrumentation extends ClassInstanceMethodsEnhancePluginDe
         return new StaticMethodsInterceptPoint[]{
             new StaticMethodsInterceptPoint() {
                 @Override
-                public ElementMatcher<MethodDescription> getMethodsMatcher() {
-                    return ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class))
-                            .and(ElementMatchers.not(ElementMatchers.isConstructor()))
-                            .and(ElementMatchers.not(ElementMatchers.named(INTERCEPT_GET_SKYWALKING_DYNAMIC_FIELD_METHOD)))
-                            .and(ElementMatchers.not(ElementMatchers.named(INTERCEPT_SET_SKYWALKING_DYNAMIC_FEILD_METHOD)))
-                            .and(ElementMatchers.not(ElementMatchers.named("driver")));
+                public ElementMatcher.Junction getMethodsMatcher() {
+                    HierarchyMatch match = (HierarchyMatch) HierarchyMatch.byHierarchyMatch(ENHANCE_CLASS3);
+                    return not(isDeclaredBy(Object.class))
+                            .and(not(ElementMatchers.isConstructor()))
+                            .and(not(named(INTERCEPT_GET_SKYWALKING_DYNAMIC_FIELD_METHOD)))
+                            .and(not(named(INTERCEPT_SET_SKYWALKING_DYNAMIC_FEILD_METHOD)))
+                            .and(not(named("driver")))
+                            .and(not(named("ec")))
+                            .and(not(named("db")))
+                            .and(not(isDeclaredBy(match.buildJunction())))
+                            .or(isDeclaredBy(match.buildJunction())
+                                    .and(named("complete")));
                 }
 
                 @Override
                 public String getMethodsInterceptor() {
+
                     return STATIC_INTERCEPT_CLASS;
                 }
 

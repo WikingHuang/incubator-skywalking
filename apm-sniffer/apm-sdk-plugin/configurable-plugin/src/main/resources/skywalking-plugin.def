@@ -15,4 +15,5 @@
 # limitations under the License.
 
 configurable=org.apache.skywalking.apm.plugin.configurable.define.RunnableInstrumentation
+configurable=org.apache.skywalking.apm.plugin.configurable.define.CallableInstrumentation
 configurable=org.apache.skywalking.apm.plugin.configurable.define.StandardInstrumentation

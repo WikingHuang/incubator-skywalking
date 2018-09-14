@@ -30,14 +30,13 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 /**
  * Created by weijie.huang on 2018/9/12
  */
-public class RunnableInstrumentation extends ClassInstanceMethodsEnhancePluginDefine {
+public class CallableInstrumentation extends ClassInstanceMethodsEnhancePluginDefine {
 
-    private static final String[] PARENT_CLASS = {"java.lang.Runnable"};
-    private static final String[] CLASS_NAME_CONTAINS = {"slick", "s.com.eoi", "scala.concurrent"};
-//    private static final String[] CLASS_NAME_CONTAINS = {};
+    private static final String[] PARENT_CLASS = {"java.util.concurrent.Callable"};
+    private static final String[] CLASS_NAME_CONTAINS = {};
     private static final String INIT_METHOD_INTERCEPTOR = "org.apache.skywalking.apm.plugin.configurable.CallableOrRunnableConstructInterceptor";
     private static final String CALL_METHOD_INTERCEPTOR = "org.apache.skywalking.apm.plugin.configurable.CallableOrRunnableInvokeInterceptor";
-    private static final String RUN_METHOD_NAME = "run";
+    private static final String CALL_METHOD_NAME = "call";
 
     @Override
     protected ConstructorInterceptPoint[] getConstructorsInterceptPoints() {
@@ -62,7 +61,7 @@ public class RunnableInstrumentation extends ClassInstanceMethodsEnhancePluginDe
             new InstanceMethodsInterceptPoint() {
                 @Override
                 public ElementMatcher<MethodDescription> getMethodsMatcher() {
-                    return named(RUN_METHOD_NAME).and(takesArguments(0));
+                    return named(CALL_METHOD_NAME).and(takesArguments(0));
                 }
 
                 @Override
